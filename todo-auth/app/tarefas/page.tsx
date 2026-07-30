@@ -399,6 +399,15 @@ export default function Tarefas() {
                         )}
 
                         <button
+                            onClick={() =>
+                                router.push("/calendario")
+                            }
+                            className="rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:bg-green-700 active:scale-95 sm:px-4"
+                        >
+                            📅 Calendário
+                        </button>
+
+                        <button
                             onClick={ativarNotificacoes}
                             className="rounded-lg bg-yellow-500 px-3 py-2 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:bg-yellow-600 active:scale-95 sm:px-4"
                         >

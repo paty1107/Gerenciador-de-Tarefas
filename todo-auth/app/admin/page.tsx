@@ -9,6 +9,7 @@ type User = {
     password: string;
     role: "user" | "admin";
     blocked?: boolean;
+    resetToken?: string | null;
 };
 
 type Task = {
@@ -17,6 +18,8 @@ type Task = {
     title: string;
     description: string;
     completed: boolean;
+    dueDate?: string;
+    dueTime?: string;
 };
 
 const API_URL = "http://localhost:3001";
@@ -704,19 +707,6 @@ export default function Admin() {
 
                         {/* PESQUISA */}
 
-                        <div className="mb-6">
-                            <input
-                                type="text"
-                                placeholder="🔍 Pesquisar tarefa..."
-                                value={searchTask}
-                                onChange={(e) => setSearchTask(e.target.value)}
-                                className={`w-full rounded-lg border p-3 ${
-                                    theme === "dark"
-                                        ? "border-gray-600 bg-gray-700 text-white"
-                                        : "border-gray-300 bg-white"
-                                    }`}
-                            />
-                        </div>
                         <div className="mb-6">
                             <input
                                 type="text"
