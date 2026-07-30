@@ -62,6 +62,9 @@ export default function Tarefas() {
     const [filter, setFilter] = useState<
         "all" | "pending" | "completed" | "favorite"
     >("all");
+    const [ordenacao, setOrdenacao] = useState<
+        "data" | "prioridade" | "status" | "alfabetica"
+    >("data");
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -401,22 +404,67 @@ export default function Tarefas() {
         router.push("/login");
     }
 
-    const tarefasFiltradas = tasks.filter((task) => {
-        if (filter === "pending") {
-            return !task.completed;
-        }
+    const tarefasFiltradas = tasks
+        .filter((task) => {
 
-        if (filter === "completed") {
-            return task.completed;
-        }
+            if (filter === "pending") {
+                return !task.completed;
+            }
+
+            if (filter === "completed") {
+                return task.completed;
+            }
+
+            if (filter === "favorite") {
+                return task.favorite === true;
+            }
+
+            return true;
+        })
+        .sort((a, b) => {
+
+            if (ordenacao === "data") {
+                return (
+                    new Date(a.dueDate || "9999-12-31").getTime() -
+                    new Date(b.dueDate || "9999-12-31").getTime()
+                );
+            }
 
 
-        if (filter === "favorite") {
-            return task.favorite === true;
-        }
+            if (ordenacao === "prioridade") {
 
-        return true;
-    });
+                const peso = {
+                    "Alta": 1,
+                    "Média": 2,
+                    "Baixa": 3
+                };
+
+                return (
+                    (peso[a.priority || "Baixa"]) -
+                    (peso[b.priority || "Baixa"])
+                );
+            }
+
+
+            if (ordenacao === "status") {
+
+                return Number(a.completed) -
+                    Number(b.completed);
+
+            }
+
+
+            if (ordenacao === "alfabetica") {
+
+                return a.title.localeCompare(
+                    b.title
+                );
+
+            }
+
+
+            return 0;
+        });
 
     if (loading) {
         return (
@@ -750,6 +798,50 @@ export default function Tarefas() {
                 </div>
 
                 {/* FILTROS */}
+
+                <div className="mb-5">
+
+                    <label className="mb-2 block font-medium">
+                        Ordenar por:
+    </label>
+
+                    <select
+                        value={ordenacao}
+                        onChange={(e) =>
+                            setOrdenacao(
+                                e.target.value as
+                                "data" |
+                                "prioridade" |
+                                "status" |
+                                "alfabetica"
+                            )
+                        }
+                        className={`rounded-lg border p-3 ${
+                            theme === "dark"
+                                ? "border-gray-600 bg-gray-700 text-white"
+                                : "border-gray-300 bg-white"
+                            }`}
+                    >
+
+                        <option value="data">
+                            📅 Data
+        </option>
+
+                        <option value="prioridade">
+                            🚩 Prioridade
+        </option>
+
+                        <option value="status">
+                            ✅ Status
+        </option>
+
+                        <option value="alfabetica">
+                            🔤 Ordem alfabética
+        </option>
+
+                    </select>
+
+                </div>
                 <div className="mb-5 flex flex-wrap gap-2">
 
                     <button
