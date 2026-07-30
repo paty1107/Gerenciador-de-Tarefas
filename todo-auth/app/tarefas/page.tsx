@@ -310,6 +310,35 @@ export default function Tarefas() {
             behavior: "smooth",
         });
     }
+    function calcularDiasRestantes(data?: string) {
+        if (!data) return null;
+
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        const dataTarefa = new Date(data + "T00:00:00");
+
+        const diferenca =
+            dataTarefa.getTime() - hoje.getTime();
+
+        const dias = Math.ceil(
+            diferenca / (1000 * 60 * 60 * 24)
+        );
+
+        if (dias < 0) {
+            return "Atrasada";
+        }
+
+        if (dias === 0) {
+            return "Hoje";
+        }
+
+        if (dias === 1) {
+            return "Falta 1 dia";
+        }
+
+        return `Faltam ${dias} dias`;
+    }
 
     async function excluirTarefa(id: string) {
         const confirmar = window.confirm(
@@ -961,6 +990,21 @@ export default function Tarefas() {
                                     {task.dueTime}
                                 </p>
                             )}
+
+                            {task.dueDate && (
+                                <p
+                                    className={`mb-3 text-sm font-medium ${
+                                        calcularDiasRestantes(task.dueDate) === "Atrasada"
+                                            ? "text-red-500"
+                                            : calcularDiasRestantes(task.dueDate) === "Hoje"
+                                                ? "text-green-500"
+                                                : ""
+                                        }`}
+                                >
+                                    ⏳ {calcularDiasRestantes(task.dueDate)}
+                                </p>
+                            )}
+
                             {task.priority && (
                                 <p className="mb-1 flex items-center gap-2 text-sm">
                                     <FiFlag />
