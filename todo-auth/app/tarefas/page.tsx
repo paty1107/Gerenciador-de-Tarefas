@@ -11,6 +11,7 @@ type Task = {
     completed: boolean;
     dueDate?: string;
     dueTime?: string;
+    priority?: "Baixa" | "Média" | "Alta";
 };
 
 type User = {
@@ -32,6 +33,9 @@ export default function Tarefas() {
     const [description, setDescription] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [dueTime, setDueTime] = useState("");
+    const [priority, setPriority] = useState<
+        "Baixa" | "Média" | "Alta"
+    >("Média");
 
     const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -169,6 +173,7 @@ export default function Tarefas() {
                             description,
                             dueDate,
                             dueTime,
+                            priority,
                         }),
                     }
                 );
@@ -199,6 +204,7 @@ export default function Tarefas() {
                             description,
                             dueDate,
                             dueTime,
+                            priority,
                             completed: false,
                             userId: user.id,
                         }),
@@ -517,6 +523,41 @@ export default function Tarefas() {
                                 }`}
                         />
 
+                        <div>
+                            <label className="mb-1 block font-medium">
+                                Prioridade
+    </label>
+
+                            <select
+                                value={priority}
+                                onChange={(event) =>
+                                    setPriority(
+                                        event.target.value as
+                                        "Baixa" |
+                                        "Média" |
+                                        "Alta"
+                                    )
+                                }
+                                className={`w-full rounded-lg border p-3 ${
+                                    theme === "dark"
+                                        ? "border-gray-600 bg-gray-700 text-white"
+                                        : "border-gray-300 bg-white"
+                                    }`}
+                            >
+                                <option value="Baixa">
+                                    🟢 Baixa
+        </option>
+
+                                <option value="Média">
+                                    🟡 Média
+        </option>
+
+                                <option value="Alta">
+                                    🔴 Alta
+        </option>
+                            </select>
+                        </div>
+
                         <div className="grid gap-4 sm:grid-cols-2">
 
                             <div>
@@ -691,6 +732,18 @@ export default function Tarefas() {
                             {task.dueTime && (
                                 <p className="mb-4 text-sm">
                                     ⏰ {task.dueTime}
+                                </p>
+                            )}
+
+                            {task.priority && (
+                                <p className="mb-4 text-sm font-medium">
+                                    Prioridade: {
+                                        task.priority === "Alta"
+                                            ? "🔴 Alta"
+                                            : task.priority === "Média"
+                                                ? "🟡 Média"
+                                                : "🟢 Baixa"
+                                    }
                                 </p>
                             )}
 
