@@ -3,6 +3,23 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import {
+    FiBell,
+    FiLogOut,
+    FiCalendar,
+    FiClock,
+    FiEdit,
+    FiTrash2,
+    FiCheck,
+    FiPlus,
+    FiBookOpen,
+    FiBriefcase,
+    FiUser,
+    FiFlag,
+    FiSave,
+    FiStar
+} from "react-icons/fi";
+
 type Task = {
     id: string;
     userId: string;
@@ -12,6 +29,8 @@ type Task = {
     dueDate?: string;
     dueTime?: string;
     priority?: "Baixa" | "Média" | "Alta";
+    category?: string;
+    favorite?: boolean;
 };
 
 type User = {
@@ -36,11 +55,12 @@ export default function Tarefas() {
     const [priority, setPriority] = useState<
         "Baixa" | "Média" | "Alta"
     >("Média");
+    const [category, setCategory] = useState("Pessoal");
 
     const [editingId, setEditingId] = useState<string | null>(null);
 
     const [filter, setFilter] = useState<
-        "all" | "pending" | "completed"
+        "all" | "pending" | "completed" | "favorite"
     >("all");
 
     const [loading, setLoading] = useState(true);
@@ -85,6 +105,44 @@ export default function Tarefas() {
         const loggedUser: User = JSON.parse(savedUser);
 
         setUser(loggedUser);
+    }
+
+
+    async function favoritarTarefa(task: Task) {
+        try {
+            const response = await fetch(
+                `${API_URL}/tasks/${task.id}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        favorite: !task.favorite,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Erro");
+            }
+
+            const updatedTask = await response.json();
+
+            setTasks((current) =>
+                current.map((item) =>
+                    item.id === task.id
+                        ? updatedTask
+                        : item
+                )
+            );
+
+        } catch (error) {
+            console.error(error);
+            setError(
+                "Não foi possível favoritar a tarefa."
+            );
+        }
     }
 
     async function carregarTarefas() {
@@ -174,6 +232,10 @@ export default function Tarefas() {
                             dueDate,
                             dueTime,
                             priority,
+                            category,
+                            favorite: false,
+                            completed: false,
+                            userId: user.id,
                         }),
                     }
                 );
@@ -236,6 +298,9 @@ export default function Tarefas() {
         setDescription(task.description);
         setDueDate(task.dueDate || "");
         setDueTime(task.dueTime || "");
+
+        setPriority(task.priority || "Média");
+        setCategory(task.category || "Pessoal");
 
         window.scrollTo({
             top: 0,
@@ -310,6 +375,8 @@ export default function Tarefas() {
         setDescription("");
         setDueDate("");
         setDueTime("");
+        setPriority("Média");
+        setCategory("Pessoal");
         setEditingId(null);
     }
 
@@ -341,6 +408,11 @@ export default function Tarefas() {
 
         if (filter === "completed") {
             return task.completed;
+        }
+
+
+        if (filter === "favorite") {
+            return task.favorite === true;
         }
 
         return true;
@@ -417,7 +489,8 @@ export default function Tarefas() {
                             onClick={ativarNotificacoes}
                             className="rounded-lg bg-yellow-500 px-3 py-2 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:bg-yellow-600 active:scale-95 sm:px-4"
                         >
-                            🔔 Notificações
+                            <FiBell className="inline mr-2" />
+                            Notificações
                         </button>
 
                         {/* SWITCH CLARO / ESCURO */}
@@ -462,6 +535,7 @@ export default function Tarefas() {
                             onClick={logout}
                             className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:bg-red-700 active:scale-95 sm:px-4"
                         >
+                            <FiLogOut className="inline mr-2" />
                             Sair
                         </button>
 
@@ -558,6 +632,43 @@ export default function Tarefas() {
                             </select>
                         </div>
 
+                        <div>
+                            <label className="mb-1 block font-medium">
+                                Categoria
+        </label>
+
+                            <select
+                                value={category}
+                                onChange={(e) =>
+                                    setCategory(e.target.value)
+                                }
+                                className={`w-full rounded-lg border p-3 ${
+                                    theme === "dark"
+                                        ? "border-gray-600 bg-gray-700 text-white"
+                                        : "border-gray-300 bg-white"
+                                    }`}
+                            >
+                                <option value="Estudo">
+                                    📚 Estudo
+            </option>
+
+                                <option value="Trabalho">
+                                    💼 Trabalho
+            </option>
+
+                                <option value="Pessoal">
+                                    🏠 Pessoal
+            </option>
+
+                                <option value="Outros">
+                                    📌 Outros
+            </option>
+
+                            </select>
+                        </div>
+
+
+
                         <div className="grid gap-4 sm:grid-cols-2">
 
                             <div>
@@ -608,11 +719,20 @@ export default function Tarefas() {
 
                             <button
                                 type="submit"
-                                className="rounded-lg bg-blue-600 px-5 py-3 font-medium text-white transition-all duration-200 hover:scale-[1.02] hover:bg-blue-700 active:scale-95"
+                                className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-medium text-white transition-all duration-200 hover:scale-[1.02] hover:bg-blue-700 active:scale-95"
                             >
-                                {editingId
-                                    ? "Salvar alterações"
-                                    : "Criar tarefa"}
+                                {editingId ? (
+                                    <>
+                                        <FiSave />
+                                        Salvar alterações
+        </>
+                                ) : (
+                                        <>
+                                            <FiPlus />
+                                            Criar tarefa
+        </>
+                                    )}
+
                             </button>
 
                             {editingId && (
@@ -673,6 +793,19 @@ export default function Tarefas() {
                         Concluídas
                     </button>
 
+                    <button
+                        onClick={() => setFilter("favorite")}
+                        className={`rounded-lg px-4 py-2 font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+                            filter === "favorite"
+                                ? "bg-yellow-500 text-white"
+                                : theme === "dark"
+                                    ? "bg-gray-800"
+                                    : "bg-white"
+                            }`}
+                    >
+                        ⭐ Favoritas
+</button>
+
                 </div>
 
                 {/* CARDS */}
@@ -724,14 +857,32 @@ export default function Tarefas() {
                             </p>
 
                             {task.dueDate && (
-                                <p className="mb-1 text-sm">
-                                    📅 {task.dueDate}
+                                <p className="mb-1 flex items-center gap-2 text-sm">
+                                    <FiCalendar />
+                                    {task.dueDate}
                                 </p>
                             )}
 
                             {task.dueTime && (
-                                <p className="mb-4 text-sm">
-                                    ⏰ {task.dueTime}
+                                <p className="mb-4 flex items-center gap-2 text-sm">
+                                    <FiClock />
+                                    {task.dueTime}
+                                </p>
+                            )}
+                            {task.priority && (
+                                <p className="mb-1 flex items-center gap-2 text-sm">
+                                    <FiFlag />
+                                    Prioridade: {task.priority}
+                                </p>
+                            )}
+
+                            {task.category && (
+                                <p className="mb-4 flex items-center gap-2 text-sm">
+                                    {task.category === "Estudo" && <FiBookOpen />}
+                                    {task.category === "Trabalho" && <FiBriefcase />}
+                                    {task.category === "Pessoal" && <FiUser />}
+
+                                    Categoria: {task.category}
                                 </p>
                             )}
 
@@ -747,6 +898,21 @@ export default function Tarefas() {
                                 </p>
                             )}
 
+                            <button
+                                onClick={() => favoritarTarefa(task)}
+                                className={`mb-3 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                                    task.favorite
+                                        ? "bg-yellow-500 text-white"
+                                        : "bg-gray-300 text-gray-800"
+                                    }`}
+                            >
+                                <FiStar className="inline mr-1" />
+
+                                {task.favorite
+                                    ? "Favoritada"
+                                    : "Favoritar"}
+                            </button>
+
                             <div className="flex flex-wrap gap-2">
 
                                 <button
@@ -755,6 +921,8 @@ export default function Tarefas() {
                                     }
                                     className="rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:bg-green-700 active:scale-95"
                                 >
+                                    <FiCheck className="inline mr-1" />
+
                                     {task.completed
                                         ? "Reabrir"
                                         : "Concluir"}
@@ -766,6 +934,7 @@ export default function Tarefas() {
                                     }
                                     className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:bg-blue-700 active:scale-95"
                                 >
+                                    <FiEdit className="inline mr-1" />
                                     Editar
                                 </button>
 
@@ -775,6 +944,8 @@ export default function Tarefas() {
                                     }
                                     className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:bg-red-700 active:scale-95"
                                 >
+
+                                    <FiTrash2 className="inline mr-1" />
                                     Excluir
                                 </button>
 
@@ -797,6 +968,6 @@ export default function Tarefas() {
                 )}
 
             </div>
-        </main>
+        </main >
     );
 }
