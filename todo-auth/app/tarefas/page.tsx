@@ -450,50 +450,68 @@ export default function Tarefas() {
 
             return true;
         })
-        .sort((a, b) => {
 
-            if (ordenacao === "data") {
-                return (
-                    new Date(a.dueDate || "9999-12-31").getTime() -
-                    new Date(b.dueDate || "9999-12-31").getTime()
-                );
-            }
-
-
-            if (ordenacao === "prioridade") {
-
-                const peso = {
-                    "Alta": 1,
-                    "Média": 2,
-                    "Baixa": 3
-                };
-
-                return (
-                    (peso[a.priority || "Baixa"]) -
-                    (peso[b.priority || "Baixa"])
-                );
-            }
-
-
-            if (ordenacao === "status") {
-
-                return Number(a.completed) -
-                    Number(b.completed);
-
-            }
-
-
-            if (ordenacao === "alfabetica") {
-
-                return a.title.localeCompare(
-                    b.title
-                );
-
-            }
-
-
+    function calcularProgresso() {
+        if (tasks.length === 0) {
             return 0;
-        });
+        }
+
+        const concluidas = tasks.filter(
+            (task) => task.completed
+        ).length;
+
+        return Math.round(
+            (concluidas / tasks.length) * 100
+        );
+    }
+
+    const progresso = calcularProgresso();
+    const tarefasOrdenadas = [...tarefasFiltradas].sort((a, b) => {
+
+        if (ordenacao === "data") {
+            return (
+                new Date(a.dueDate || "").getTime() -
+                new Date(b.dueDate || "").getTime()
+            );
+        }
+
+
+
+
+        if (ordenacao === "prioridade") {
+
+            const peso = {
+                "Alta": 1,
+                "Média": 2,
+                "Baixa": 3
+            };
+
+            return (
+                (peso[a.priority || "Baixa"]) -
+                (peso[b.priority || "Baixa"])
+            );
+        }
+
+
+        if (ordenacao === "status") {
+
+            return Number(a.completed) -
+                Number(b.completed);
+
+        }
+
+
+        if (ordenacao === "alfabetica") {
+
+            return a.title.localeCompare(
+                b.title
+            );
+
+        }
+
+
+        return 0;
+    });
 
     if (loading) {
         return (
@@ -616,6 +634,33 @@ export default function Tarefas() {
                             Sair
                         </button>
 
+                    </div>
+                </div>
+
+                <div
+                    className={`mb-6 rounded-xl p-5 shadow ${
+                        theme === "dark"
+                            ? "bg-gray-800"
+                            : "bg-white"
+                        }`}
+                >
+                    <div className="mb-2 flex justify-between">
+                        <span className="font-medium">
+                            Progresso das tarefas
+        </span>
+
+                        <span className="font-bold">
+                            {progresso}%
+        </span>
+                    </div>
+
+                    <div className="h-4 w-full rounded-full bg-gray-300">
+                        <div
+                            className="h-4 rounded-full bg-blue-600 transition-all duration-500"
+                            style={{
+                                width: `${progresso}%`,
+                            }}
+                        />
                     </div>
                 </div>
 

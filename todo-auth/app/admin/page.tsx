@@ -20,6 +20,9 @@ type Task = {
     completed: boolean;
     dueDate?: string;
     dueTime?: string;
+    priority?: "Baixa" | "Média" | "Alta";
+    category?: string;
+    favorite?: boolean;
 };
 
 const API_URL = "http://localhost:3001";
@@ -48,6 +51,7 @@ export default function Admin() {
     const [search, setSearch] = useState("");
     const [searchTask, setSearchTask] = useState("");
 
+
     useEffect(() => {
         const savedTheme = localStorage.getItem("theme");
 
@@ -67,6 +71,22 @@ export default function Admin() {
             localStorage.setItem("theme", "light");
         }
     }, [theme]);
+
+    async function carregarTarefas() {
+        try {
+            const response = await fetch(`${API_URL}/tasks`);
+
+            if (!response.ok) {
+                throw new Error("Erro ao carregar tarefas");
+            }
+
+            const data = await response.json();
+
+            setTasks(data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     async function verificarAdministrador() {
         const savedUser = localStorage.getItem("user");
